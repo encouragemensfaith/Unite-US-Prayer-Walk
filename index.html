@@ -77,7 +77,10 @@
         <a class="hover:text-gold" href="#event">Event</a>
         <a class="hover:text-gold" href="#video">Watch</a>
         <a class="hover:text-gold" href="#calendar">Calendar</a>
+        <a class="hover:text-gold" href="#signup">Get updates</a>
       </nav>
+      <!-- Phones: nav is hidden, so show one clear link to the email form -->
+      <a href="#signup" class="rounded-full border border-white/40 px-4 py-2 text-sm font-semibold text-white sm:hidden">Get updates</a>
     </div>
   </header>
 
@@ -120,6 +123,9 @@
             Watch the video
           </a>
         </div>
+        <p class="mt-6 text-base text-white/80">
+          Want reminders? <a href="#signup" class="font-semibold text-gold underline underline-offset-4 hover:text-white">Get email updates</a>
+        </p>
       </div>
 
       <!-- Intro + date panel -->
@@ -249,27 +255,24 @@
     </section>
 
     <!-- Email sign-up -->
-    <section id="signup" class="bg-navy py-20 text-white lg:py-28">
+    <section id="signup" class="scroll-mt-4 bg-navy py-20 text-white lg:py-28">
       <div class="mx-auto max-w-2xl px-6 text-center">
         <h2 class="font-display text-3xl font-black uppercase italic sm:text-5xl">Stay in the loop</h2>
         <p class="mx-auto mt-4 max-w-md text-lg text-white/80">
           Enter your email and we'll send you updates about the 30 days of prayer and the October 27 event.
         </p>
 
-        <!--
-          EDIT: Replace YOUR_FORM_ID with your free Formspree form ID (formspree.io),
-          or swap the action for Mailchimp, Buttondown, or another email service.
-        -->
-        <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" class="mt-10 flex flex-col gap-3 sm:flex-row">
+        <form id="signup-form" action="https://formspree.io/f/xwlpvpdw" method="POST" class="mt-10 flex flex-col gap-3 sm:flex-row">
           <label for="email" class="sr-only">Email address</label>
           <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"
                  class="w-full flex-1 rounded-lg border border-white/25 bg-white/10 px-5 py-4 text-white placeholder-white/50 focus:border-gold focus:outline-none" />
-          <button type="submit"
-                  class="rounded-lg bg-gold px-7 py-4 font-display text-base font-extrabold text-navy transition hover:bg-white">
+          <button id="signup-btn" type="submit"
+                  class="rounded-lg bg-gold px-7 py-4 font-display text-base font-extrabold text-navy transition hover:bg-white disabled:opacity-60">
             Sign me up
           </button>
         </form>
-        <p class="mt-4 text-sm text-white/60">We only email about Unite South Alabama. Unsubscribe anytime.</p>
+        <p id="signup-status" role="status" aria-live="polite" class="mt-4 min-h-[1.5rem] text-base font-semibold"></p>
+        <p class="mt-4 text-sm text-white/60">We only use your email for Unite South Alabama updates.</p>
       </div>
     </section>
   </main>
@@ -280,6 +283,46 @@
       <p class="mt-4 text-sm font-semibold uppercase tracking-[0.25em] text-white/60">Prayer changes things.</p>
     </div>
   </footer>
+
+
+  <script>
+    // Sends the email to Formspree without leaving the page.
+    // If JavaScript is off, the form still works as a normal form post.
+    (function () {
+      var form = document.getElementById('signup-form');
+      var btn = document.getElementById('signup-btn');
+      var status = document.getElementById('signup-status');
+      if (!form || !window.fetch) return;
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        btn.disabled = true;
+        status.className = 'mt-4 min-h-[1.5rem] text-base font-semibold text-white/80';
+        status.textContent = 'Sending...';
+
+        fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        }).then(function (res) {
+          if (res.ok) {
+            form.reset();
+            status.className = 'mt-4 min-h-[1.5rem] text-base font-semibold text-gold';
+            status.textContent = "Thanks! You're on the list.";
+            form.style.display = 'none';
+          } else {
+            return res.json().then(function (data) {
+              throw new Error((data.errors && data.errors.map(function (x) { return x.message; }).join(', ')) || 'error');
+            });
+          }
+        }).catch(function () {
+          status.className = 'mt-4 min-h-[1.5rem] text-base font-semibold text-red-300';
+          status.textContent = 'Something went wrong. Please check your email address and try again.';
+          btn.disabled = false;
+        });
+      });
+    })();
+  </script>
 
 </body>
 </html>
